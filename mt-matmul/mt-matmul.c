@@ -19,9 +19,11 @@
 //--------------------------------------------------------------------------
 // Includes 
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+// #include <string.h>
+// #include <stdlib.h>
+// #include <stdio.h>
+
+
 
 
 //--------------------------------------------------------------------------
@@ -48,23 +50,23 @@
 // all threads start executing thread_entry(). Use their "coreid" to
 // differentiate between threads (each thread is running on a separate core).
   
-// void thread_entry(int cid, int nc)
-// {
-//    static data_t results_data[ARRAY_SIZE];
+void thread_entry(int cid, int nc)
+{
+   static data_t results_data[ARRAY_SIZE];
 
-//    stats(matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data); barrier(nc), DIM_SIZE/DIM_SIZE/DIM_SIZE);
+   stats(matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data); barrier(nc), DIM_SIZE/DIM_SIZE/DIM_SIZE);
  
-//    int res = verifyDouble(ARRAY_SIZE, results_data, verify_data);
+   int res = verifyDouble(ARRAY_SIZE, results_data, verify_data);
 
-// #ifdef DEBUG
-//    printArray("results:", ARRAY_SIZE, results_data);
-//    printArray("verify :", ARRAY_SIZE, verify_data);
-// #endif
+#ifdef DEBUG
+   printArray("results:", ARRAY_SIZE, results_data);
+   printArray("verify :", ARRAY_SIZE, verify_data);
+#endif
 
-//    exit(res);
-// }
+   exit(res);
+}
 
 void thread_entry(int cid, int nc)
 {
-      printf("Hart ID: %lu\n", cid); // Print the hart ID
+      printf("Hart ID: %lu\n", cid); // Print the hart ID <- this print function is defined in syscalls.c
 }
