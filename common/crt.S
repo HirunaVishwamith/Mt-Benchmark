@@ -2,17 +2,12 @@
 
 #include "encoding.h"
 
-#if __riscv_xlen == 64
-# define LREG ld
-# define SREG sd
-# define REGBYTES 8
-#else
-# define LREG lw
-# define SREG sw
-# define REGBYTES 4
-#endif
+#define NUM_CORES 2 // Define the number of cores here. Adjust as needed.
+#define DRAM_BASE 0x0000000010000000
+#define STKSHIFT 17
+#define TLSSHIFT 12
 
-  .section ".text.init"
+  .section ".text.init" ## code starts here in the elf file
   .globl _start
 _start:
   li  x1, 0
@@ -46,70 +41,23 @@ _start:
   li  x29,0
   li  x30,0
   li  x31,0
-  #li  sp,0x0000000080010000
 
-  # enable FPU, vector, and accelerator if present
-  li t0, MSTATUS_FS | MSTATUS_XS | MSTATUS_VS
-  csrs mstatus, t0
 
   # make sure XLEN agrees with compilation choice
   li t0, 1
   slli t0, t0, 31
-#if __riscv_xlen == 64
-  bgez t0, 1f
-#else
-  bltz t0, 1f
-#endif
-2:
-  li a0, 1
-  sw a0, tohost, t0
-  j 2b
+  bgez t0, 1f  # if t0 >= 0, branch forward to label 1
+
+2:                    # Local label '2'
+  li a0, 1           # Load Immediate: puts value 1 into register a0
+  sw a0, tohost, t0  # Store Word: stores the value in a0 to address 'tohost', using t0 as temporary
+  j 2b               # Jump backwards (b = backward) to label 2
 1:
 
-##ifdef __riscv_flen
-  ## initialize FPU if we have one
-  #la t0, 1f
-  #csrw mtvec, t0
-
-  #fssr    x0
-  #fmv.s.x f0, x0
-  #fmv.s.x f1, x0
-  #fmv.s.x f2, x0
-  #fmv.s.x f3, x0
-  #fmv.s.x f4, x0
-  #fmv.s.x f5, x0
-  #fmv.s.x f6, x0
-  #fmv.s.x f7, x0
-  #fmv.s.x f8, x0
-  #fmv.s.x f9, x0
-  #fmv.s.x f10,x0
-  #fmv.s.x f11,x0
-  #fmv.s.x f12,x0
-  #fmv.s.x f13,x0
-  #fmv.s.x f14,x0
-  #fmv.s.x f15,x0
-  #fmv.s.x f16,x0
-  #fmv.s.x f17,x0
-  #fmv.s.x f18,x0
-  #fmv.s.x f19,x0
-  #fmv.s.x f20,x0
-  #fmv.s.x f21,x0
-  #fmv.s.x f22,x0
-  #fmv.s.x f23,x0
-  #fmv.s.x f24,x0
-  #fmv.s.x f25,x0
-  #fmv.s.x f26,x0
-  #fmv.s.x f27,x0
-  #fmv.s.x f28,x0
-  #fmv.s.x f29,x0
-  #fmv.s.x f30,x0
-  #fmv.s.x f31,x0
-#1:
-##endif
 
   # initialize trap vector
-  la t0, trap_entry
-  csrw mtvec, t0
+  la t0, trap_entry       # Load Address of trap_entry into t0
+  csrw mtvec, t0         # Write t0 to mtvec CSR (Control/Status Register)
 
   # initialize global pointer
 .option push
@@ -117,60 +65,61 @@ _start:
   la gp, __global_pointer$
 .option pop
 
-  la  tp, _end + 63
-  and tp, tp, -64
+
+
+  # give each core 128KB of stack
+  li  t0, DRAM_BASE
+  add sp, a0, 1
+  sll sp, sp, STKSHIFT
+  add sp, sp, t0          # Add DRAM_BASE to the offset to get final sp
+
 
   # get core id
   csrr a0, mhartid
-  # for now, assume only 1 core
-  li a1, 1
-1:bgeu a0, a1, 1b
 
-  # give each core 128KB of stack + TLS
-#define STKSHIFT 17
-  add sp, a0, 1
-  sll sp, sp, STKSHIFT
-  add sp, sp, tp
-  sll a2, a0, STKSHIFT
-  add tp, tp, a2
+  # load number of cores into a1
+  li a1, NUM_CORES
 
-  j _init
+  # a0 and a1 are caller-saved registers variable cid is stored in a0 and nc is on a1
+
+   # jump to thread_entry with cid in a0 and nc in a1
+  jal ra, thread_entry  // Jump and Link to thread_entry
 
   .align 2
 trap_entry:
   addi sp, sp, -272
 
-  SREG x1, 1*REGBYTES(sp)
-  SREG x2, 2*REGBYTES(sp)
-  SREG x3, 3*REGBYTES(sp)
-  SREG x4, 4*REGBYTES(sp)
-  SREG x5, 5*REGBYTES(sp)
-  SREG x6, 6*REGBYTES(sp)
-  SREG x7, 7*REGBYTES(sp)
-  SREG x8, 8*REGBYTES(sp)
-  SREG x9, 9*REGBYTES(sp)
-  SREG x10, 10*REGBYTES(sp)
-  SREG x11, 11*REGBYTES(sp)
-  SREG x12, 12*REGBYTES(sp)
-  SREG x13, 13*REGBYTES(sp)
-  SREG x14, 14*REGBYTES(sp)
-  SREG x15, 15*REGBYTES(sp)
-  SREG x16, 16*REGBYTES(sp)
-  SREG x17, 17*REGBYTES(sp)
-  SREG x18, 18*REGBYTES(sp)
-  SREG x19, 19*REGBYTES(sp)
-  SREG x20, 20*REGBYTES(sp)
-  SREG x21, 21*REGBYTES(sp)
-  SREG x22, 22*REGBYTES(sp)
-  SREG x23, 23*REGBYTES(sp)
-  SREG x24, 24*REGBYTES(sp)
-  SREG x25, 25*REGBYTES(sp)
-  SREG x26, 26*REGBYTES(sp)
-  SREG x27, 27*REGBYTES(sp)
-  SREG x28, 28*REGBYTES(sp)
-  SREG x29, 29*REGBYTES(sp)
-  SREG x30, 30*REGBYTES(sp)
-  SREG x31, 31*REGBYTES(sp)
+  sd x1, 1*8(sp)
+  sd x2, 2*8(sp)
+  sd x3, 3*8(sp)
+  sd x4, 4*8(sp)
+  sd x5, 5*8(sp)
+  sd x6, 6*8(sp)
+  sd x7, 7*8(sp)
+  sd x8, 8*8(sp)
+  sd x9, 9*8(sp)
+  sd x10, 10*8(sp)
+  sd x11, 11*8(sp)
+  sd x12, 12*8(sp)
+  sd x13, 13*8(sp)
+  sd x14, 14*8(sp)
+  sd x15, 15*8(sp)
+  sd x16, 16*8(sp)
+  sd x17, 17*8(sp)
+  sd x18, 18*8(sp)
+  sd x19, 19*8(sp)
+  sd x20, 20*8(sp)
+  sd x21, 21*8(sp)
+  sd x22, 22*8(sp)
+  sd x23, 23*8(sp)
+  sd x24, 24*8(sp)
+  sd x25, 25*8(sp)
+  sd x26, 26*8(sp)
+  sd x27, 27*8(sp)
+  sd x28, 28*8(sp)
+  sd x29, 29*8(sp)
+  sd x30, 30*8(sp)
+  sd x31, 31*8(sp)
 
   csrr a0, mcause
   csrr a1, mepc
@@ -182,37 +131,37 @@ trap_entry:
   li t0, MSTATUS_MPP
   csrs mstatus, t0
 
-  LREG x1, 1*REGBYTES(sp)
-  LREG x2, 2*REGBYTES(sp)
-  LREG x3, 3*REGBYTES(sp)
-  LREG x4, 4*REGBYTES(sp)
-  LREG x5, 5*REGBYTES(sp)
-  LREG x6, 6*REGBYTES(sp)
-  LREG x7, 7*REGBYTES(sp)
-  LREG x8, 8*REGBYTES(sp)
-  LREG x9, 9*REGBYTES(sp)
-  LREG x10, 10*REGBYTES(sp)
-  LREG x11, 11*REGBYTES(sp)
-  LREG x12, 12*REGBYTES(sp)
-  LREG x13, 13*REGBYTES(sp)
-  LREG x14, 14*REGBYTES(sp)
-  LREG x15, 15*REGBYTES(sp)
-  LREG x16, 16*REGBYTES(sp)
-  LREG x17, 17*REGBYTES(sp)
-  LREG x18, 18*REGBYTES(sp)
-  LREG x19, 19*REGBYTES(sp)
-  LREG x20, 20*REGBYTES(sp)
-  LREG x21, 21*REGBYTES(sp)
-  LREG x22, 22*REGBYTES(sp)
-  LREG x23, 23*REGBYTES(sp)
-  LREG x24, 24*REGBYTES(sp)
-  LREG x25, 25*REGBYTES(sp)
-  LREG x26, 26*REGBYTES(sp)
-  LREG x27, 27*REGBYTES(sp)
-  LREG x28, 28*REGBYTES(sp)
-  LREG x29, 29*REGBYTES(sp)
-  LREG x30, 30*REGBYTES(sp)
-  LREG x31, 31*REGBYTES(sp)
+  ld x1, 1*8(sp)
+  ld x2, 2*8(sp)
+  ld x3, 3*8(sp)
+  ld x4, 4*8(sp)
+  ld x5, 5*8(sp)
+  ld x6, 6*8(sp)
+  ld x7, 7*8(sp)
+  ld x8, 8*8(sp)
+  ld x9, 9*8(sp)
+  ld x10, 10*8(sp)
+  ld x11, 11*8(sp)
+  ld x12, 12*8(sp)
+  ld x13, 13*8(sp)
+  ld x14, 14*8(sp)
+  ld x15, 15*8(sp)
+  ld x16, 16*8(sp)
+  ld x17, 17*8(sp)
+  ld x18, 18*8(sp)
+  ld x19, 19*8(sp)
+  ld x20, 20*8(sp)
+  ld x21, 21*8(sp)
+  ld x22, 22*8(sp)
+  ld x23, 23*8(sp)
+  ld x24, 24*8(sp)
+  ld x25, 25*8(sp)
+  ld x26, 26*8(sp)
+  ld x27, 27*8(sp)
+  ld x28, 28*8(sp)
+  ld x29, 29*8(sp)
+  ld x30, 30*8(sp)
+  ld x31, 31*8(sp)
 
   addi sp, sp, 272
   mret
@@ -220,7 +169,7 @@ trap_entry:
 .section ".tohost","aw",@progbits
 .align 6
 .globl tohost
-tohost: .dword 0
+tohost: .dword 0  ## this sould be uart
 .align 6
 .globl fromhost
 fromhost: .dword 0
