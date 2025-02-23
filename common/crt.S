@@ -4,8 +4,9 @@
 
 #define NUM_CORES 2 // Define the number of cores here. Adjust as needed.
 #define DRAM_BASE 0x0000000010000000
-#define STKSHIFT 17
-#define TLSSHIFT 12
+#define STACK_SIZE 1<<17
+#define TLS_SIZE   1<<17
+#define UART_BASE 0xe0001030
 
   .section ".text.init" ## code starts here in the elf file
   .globl _start
@@ -50,7 +51,7 @@ _start:
 
 2:                    # Local label '2'
   li a0, 1           # Load Immediate: puts value 1 into register a0
-  sw a0, tohost, t0  # Store Word: stores the value in a0 to address 'tohost', using t0 as temporary
+  sw a0, UART_BASE, t0  # Store Word: stores the value in a0 to address 'tohost', using t0 as temporary
   j 2b               # Jump backwards (b = backward) to label 2
 1:
 
@@ -65,25 +66,41 @@ _start:
   la gp, __global_pointer$
 .option pop
 
-
-
-  # give each core 128KB of stack
-  li  t0, DRAM_BASE
-  add sp, a0, 1
-  sll sp, sp, STKSHIFT
-  add sp, sp, t0          # Add DRAM_BASE to the offset to get final sp
-
-
   # get core id
   csrr a0, mhartid
 
   # load number of cores into a1
   li a1, NUM_CORES
 
+  # Define constants:
+  # REGION_SIZE = TLS_SIZE (0x100) + STACK_SIZE (0x1000) = 0x1100
+  li      t2, (STACK_SIZE + TLS_SIZE)        # t2 = 0x1000000_000000_000000
+
+  # Compute offset = hart id * REGION_SIZE
+  mul     t0, a0, t2        # t0 = hart id * 0x1100
+
+  # Compute TLS base = DRAM_BASE + offset.
+  li      t1, DRAM_BASE     # t1 = DRAM_BASE (0x10000000)
+  add     t1, t1, t0        # t1 = TLS base for this core
+
+  # Set the thread pointer (x4, tp) to point to our TLS area.
+  mv      tp, t1            # tp = TLS base
+
+  # Compute the stack top for this core:
+  # (stack grows downward, so we initialize sp to the top address of the per‑core region)
+  addi    t1, t1, (STACK_SIZE + TLS_SIZE)     # t1 = TLS base + REGION_SIZE (i.e. end of region)
+  mv      sp, t1                              # sp = stack pointer
+
+  # (At this point each core has:
+  #   its TLS area from [DRAM_BASE + hart_id*0x1100, DRAM_BASE + hart_id*0x1100 + 0x100)
+  #   and its stack from [DRAM_BASE + hart_id*0x1100 + 0x100, DRAM_BASE + (hart_id+1)*0x1100),
+  # with the stack pointer set to the top (highest address) of that core’s stack.)
+
+
   # a0 and a1 are caller-saved registers variable cid is stored in a0 and nc is on a1
 
-   # jump to thread_entry with cid in a0 and nc in a1
-  jal ra, thread_entry  // Jump and Link to thread_entry
+  # jump to _init with cid in a0 and nc in a1
+  jal _init // Jump and Link to _init
 
   .align 2
 trap_entry:
@@ -166,10 +183,3 @@ trap_entry:
   addi sp, sp, 272
   mret
 
-.section ".tohost","aw",@progbits
-.align 6
-.globl tohost
-tohost: .dword 0  ## this sould be uart
-.align 6
-.globl fromhost
-fromhost: .dword 0
