@@ -33,13 +33,13 @@ static inline void uart_send_char(char c) {
 }
 
 // Helper function to send a null-terminated string to UART
-static inline void uart_send_string(const char *s) {
+void uart_send_string(const char *s) {
   while (*s != '\0') {
     uart_send_char(*s++);
   }
 }
 
-static inline void uart_send_integer(int n) {
+void uart_send_integer(int n) {
     char buffer[12]; // Enough for largest 32-bit integer + null terminator
     int i = 0;
     if (n == 0) {

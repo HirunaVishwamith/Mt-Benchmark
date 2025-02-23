@@ -12,7 +12,6 @@
    specifically one of the entires in bfd/cpu-mips.c */
 
 OUTPUT_ARCH( "riscv" )
-ENTRY(_start)
 
 /*----------------------------------------------------------------------*/
 /* Sections                                                             */
@@ -23,18 +22,17 @@ SECTIONS
 
   /* text: test code section */
   . = 0x10000000;
-/*   . = 0x0; */
-  .text.init : { *(.text.init) }
+  .text.init : { crt.o(.text) }
 
+  .tohost ALIGN(0x1000) : { *(.tohost) }
 
-  . = ALIGN(0x1000);
   .text : { *(.text) }
 
   /* data segment */
   .data : { *(.data) }
 
   .sdata : {
-    __global_pointer$ = . + 0x800;
+    _gp = . + 0x800;
     *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata*)
     *(.sdata .sdata.* .gnu.linkonce.s.*)
   }
@@ -47,17 +45,36 @@ SECTIONS
   .bss : { *(.bss) }
 
   /* thread-local data segment */
-  .tdata :
+  /* .tdata :
   {
-    _tdata_begin = .;
+    _tls_data = .;
+    crt.o(.tdata.begin)
     *(.tdata)
-    _tdata_end = .;
+    crt.o(.tdata.end)
   }
   .tbss :
   {
     *(.tbss)
-    _tbss_end = .;
+    crt.o(.tbss.end)
+  } */
+
+  .tdata :
+  {
+    _tdata_begin = .;
+    _tls_data = .;
+    crt.o(.tdata.begin)
+    *(.tdata)
+    _tdata_end = .;
+    crt.o(.tdata.end)
   }
+  .tbss :
+  {
+    _tbss_begin = .;
+    *(.tbss)
+    _tbss_end = .;
+    crt.o(.tbss.end)
+  }
+
 
   /* End of uninitalized data segement */
   _end = .;

@@ -2,10 +2,12 @@
 
 #include "encoding.h"
 
+
 #define NUM_CORES 2 // Define the number of cores here. Adjust as needed.
-#define DRAM_BASE 0x0000000010000000
-#define STACK_SIZE 1<<17
-#define TLS_SIZE   1<<17
+#define DATA_BASE 0x10040000
+# define STACK_SIZE (1<<17)
+# define TLS_SIZE   (1<<17)
+#define REGION_SHIFT 18 // (STACK_SIZE + TLS_SIZE) 
 #define UART_BASE 0xe0001030
 
   .section ".text.init" ## code starts here in the elf file
@@ -50,9 +52,10 @@ _start:
   bgez t0, 1f  # if t0 >= 0, branch forward to label 1
 
 2:                    # Local label '2'
-  li a0, 1           # Load Immediate: puts value 1 into register a0
-  sw a0, UART_BASE, t0  # Store Word: stores the value in a0 to address 'tohost', using t0 as temporary
-  j 2b               # Jump backwards (b = backward) to label 2
+  li a0, 1            # Load Immediate: puts value 1 into register a0
+  li   t1, UART_BASE
+  sw   a0, 0(t1)      # Store Word: stores the value in a0 to address 'tohost', using t0 as temporary
+  j 2b                # Jump backwards (b = backward) to label 2
 1:
 
 
@@ -63,7 +66,7 @@ _start:
   # initialize global pointer
 .option push
 .option norelax
-  la gp, __global_pointer$
+  la gp, _gp
 .option pop
 
   # get core id
@@ -74,13 +77,14 @@ _start:
 
   # Define constants:
   # REGION_SIZE = TLS_SIZE (0x100) + STACK_SIZE (0x1000) = 0x1100
-  li      t2, (STACK_SIZE + TLS_SIZE)        # t2 = 0x1000000_000000_000000
+  li      t3, 0x1
+  sll     t2, t3, REGION_SHIFT  # t2 = 0x1100
 
   # Compute offset = hart id * REGION_SIZE
   mul     t0, a0, t2        # t0 = hart id * 0x1100
 
-  # Compute TLS base = DRAM_BASE + offset.
-  li      t1, DRAM_BASE     # t1 = DRAM_BASE (0x10000000)
+  # Compute TLS base = DATA_BASE + offset.
+  li      t1, DATA_BASE     # t1 = DATA_BASE (0x10000000)
   add     t1, t1, t0        # t1 = TLS base for this core
 
   # Set the thread pointer (x4, tp) to point to our TLS area.
@@ -88,12 +92,13 @@ _start:
 
   # Compute the stack top for this core:
   # (stack grows downward, so we initialize sp to the top address of the per‑core region)
-  addi    t1, t1, (STACK_SIZE + TLS_SIZE)     # t1 = TLS base + REGION_SIZE (i.e. end of region)
+
+  add     t1, t1, t2     # t1 = TLS base + REGION_SIZE (i.e. end of region)
   mv      sp, t1                              # sp = stack pointer
 
   # (At this point each core has:
-  #   its TLS area from [DRAM_BASE + hart_id*0x1100, DRAM_BASE + hart_id*0x1100 + 0x100)
-  #   and its stack from [DRAM_BASE + hart_id*0x1100 + 0x100, DRAM_BASE + (hart_id+1)*0x1100),
+  #   its TLS area from [DATA_BASE + hart_id*0x1100, DATA_BASE + hart_id*0x1100 + 0x100)
+  #   and its stack from [DATA_BASE + hart_id*0x1100 + 0x100, DATA_BASE + (hart_id+1)*0x1100),
   # with the stack pointer set to the top (highest address) of that core’s stack.)
 
 
