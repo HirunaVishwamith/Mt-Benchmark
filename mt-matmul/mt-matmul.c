@@ -65,7 +65,7 @@ void thread_entry(int cid, int nc)
         syscall_print_matrix(DIM_SIZE, results_data);
     }
 
-    exit(res);
+    exit(res);    // two threads will loop here onwards
 }
 
 // void thread_entry(int cid, int nc)

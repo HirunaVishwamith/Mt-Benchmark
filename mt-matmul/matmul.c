@@ -1,7 +1,6 @@
 // See LICENSE for license details.
 
 #include "dataset.h"
-#include "util.h"
 
 void __attribute__((noinline)) matmul(const int coreid, const int ncores, const int lda,  const data_t A[], const data_t B[], data_t C[] )
 {

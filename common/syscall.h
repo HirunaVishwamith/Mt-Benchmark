@@ -15,6 +15,7 @@
 
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 // UART base address
 #define UART_TX 0xe0001030
@@ -89,6 +90,41 @@ int __attribute__((weak)) main(int argc, char** argv)
   return -1;
 }
 
+void* memcpy(void* dest, const void* src, size_t len)
+{
+  if ((((uintptr_t)dest | (uintptr_t)src | len) & (sizeof(uintptr_t)-1)) == 0) {
+    const uintptr_t* s = src;
+    uintptr_t *d = dest;
+    while (d < (uintptr_t*)(dest + len))
+      *d++ = *s++;
+  } else {
+    const char* s = src;
+    char *d = dest;
+    while (d < (char*)(dest + len))
+      *d++ = *s++;
+  }
+  return dest;
+}
+
+void* memset(void* dest, int byte, size_t len)
+{
+  if ((((uintptr_t)dest | len) & (sizeof(uintptr_t)-1)) == 0) {
+    uintptr_t word = byte & 0xFF;
+    word |= word << 8;
+    word |= word << 16;
+    word |= word << 16 << 16;
+
+    uintptr_t *d = dest;
+    while (d < (uintptr_t*)(dest + len))
+      *d++ = word;
+  } else {
+    char *d = dest;
+    while (d < (char*)(dest + len))
+      *d++ = byte;
+  }
+  return dest;
+}
+
 static void init_tls()
 {
   register void* thread_pointer asm("tp");
@@ -100,6 +136,11 @@ static void init_tls()
   memset(thread_pointer + tdata_size, 0, tbss_size);
 }
 
+void exit(int code)
+{
+  while (1);
+}
+
 void _init(int cid, int nc)
 {
   init_tls();
@@ -108,13 +149,6 @@ void _init(int cid, int nc)
   // only single-threaded programs should ever get here.
   int ret = main(0, 0);
 
-  char buf[NUM_COUNTERS * 32] __attribute__((aligned(64)));
-  char* pbuf = buf;
-  for (int i = 0; i < NUM_COUNTERS; i++)
-    if (counters[i])
-      pbuf += sprintf(pbuf, "%s = %d\n", counter_names[i], counters[i]);
-  if (pbuf != buf)
-    printstr(buf);
 
   exit(ret);
 }
