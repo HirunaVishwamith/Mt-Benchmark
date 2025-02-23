@@ -73,4 +73,51 @@ void syscall_print_matrix(int lda, int *matrix) {
     }
     uart_send_string("\n");
 
+}
+
+void __attribute__((weak)) thread_entry(int cid, int nc)
+{
+  // multi-threaded programs override this function.
+  // for the case of single-threaded programs, only let core 0 proceed.
+  while (cid != 0);
+}
+
+int __attribute__((weak)) main(int argc, char** argv)
+{
+  // single-threaded programs override this function.
+  uart_send_string("Implement main(), foo!\n");
+  return -1;
+}
+
+static void init_tls()
+{
+  register void* thread_pointer asm("tp");
+  extern char _tls_data;
+  extern __thread char _tdata_begin, _tdata_end, _tbss_end;
+  size_t tdata_size = &_tdata_end - &_tdata_begin;
+  memcpy(thread_pointer, &_tls_data, tdata_size);
+  size_t tbss_size = &_tbss_end - &_tdata_end;
+  memset(thread_pointer + tdata_size, 0, tbss_size);
+}
+
+void _init(int cid, int nc)
+{
+  init_tls();
+  thread_entry(cid, nc);
+
+  // only single-threaded programs should ever get here.
+  int ret = main(0, 0);
+
+  char buf[NUM_COUNTERS * 32] __attribute__((aligned(64)));
+  char* pbuf = buf;
+  for (int i = 0; i < NUM_COUNTERS; i++)
+    if (counters[i])
+      pbuf += sprintf(pbuf, "%s = %d\n", counter_names[i], counters[i]);
+  if (pbuf != buf)
+    printstr(buf);
+
+  exit(ret);
+}
+
+
 #endif // __SYSCALL_H__
