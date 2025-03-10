@@ -20,6 +20,7 @@ instbasedir = ./install
 
 bmarks = \
 	mt-matmul \
+	mt-vvadd \
 
 
 # bmarks_host = \

@@ -12,7 +12,7 @@
 // dataset.h.
 
 // print out arrays, etc.
-// #define DEBUG
+#define DEBUG
 
 //--------------------------------------------------------------------------
 // Includes
@@ -26,10 +26,9 @@
 // Basic Utilities and Multi-thread Support
 
 #include "util.h"
-// #include "syscall.h"
 
 //--------------------------------------------------------------------------
-// matmul function
+// external functions
 
 extern void __attribute__((noinline)) matmul(const int coreid, const int ncores, const int lda, const data_t A[], const data_t B[], data_t C[]);
 
@@ -65,7 +64,9 @@ void thread_entry(int cid, int nc)
         uart_send_string("The code is ran with error code: ");
         uart_send_integer(res);
         uart_send_string("\n");
+        #ifdef DEBUG
         syscall_print_matrix(DIM_SIZE, results_data);
+        #endif
     }
 
     exit(2); // two threads will loop here onwards

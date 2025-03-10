@@ -78,6 +78,20 @@ void syscall_print_matrix(int lda, int *matrix) {
 
 }
 
+// Syscall function to print the array
+void syscall_print_array(int lda, int *array) {
+    // Prepare syscall arguments (if needed for a more complex syscall mechanism)
+    // In this simple case, we might directly implement the printing here for bare-metal
+
+    uart_send_string("Result Array:\n");
+    for (int i = 0; i < lda; i++) {
+      uart_send_integer(array[i]);
+      uart_send_string(" ");
+    }
+    
+    uart_send_string("\n");
+}
+
 void __attribute__((weak)) thread_entry(int cid, int nc)
 {
   // multi-threaded programs override this function.
