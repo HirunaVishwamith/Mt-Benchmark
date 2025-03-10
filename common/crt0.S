@@ -78,38 +78,6 @@ _start:
   # get core id
   csrr a0, mhartid
 
-    # Only core 0 should perform data initialization
-    bnez a0,sync_all_harts #If hard id !=0, skip initialization
-
-    # --- Core 0 Initialization --- #
-    # Clear the bss segmnet #
-
-    # Zero out the .bss section
-    la t5, _sbss # Start address of .bss
-    la t6, _ebss # End address of .bss
-
-clear_bss:
-    bge t5,t6, finish_bss # If reached the end of .bss, finish initialization
-    sw      x0, 0(t5)
-    addi    t5, t5, 4
-    j       clear_bss
-
-finish_bss:
-    la a1, hart_init_sync
-    sw x0, 0(a1)    # store zero into hart_init_sync to relesase all the harts
-
-    # End of initialization for core 0
-
-sync_all_harts:
-
-    # wait until the word at hart_init_sync is Zero
-
-    la a1, hart_init_sync
-    lw a2, 0(a1)
-    bnez a2, sync_all_harts
-
-
-
   # load number of cores into a1
   li a1, NUM_CORES
 
@@ -229,6 +197,3 @@ trap_entry:
 	.size  _start, .-_start
 
 	.data
-
-hart_init_sync:
-	.word 1							# hart zero will set this to 0 when the init logic has completed

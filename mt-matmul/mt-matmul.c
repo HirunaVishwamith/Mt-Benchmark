@@ -52,17 +52,19 @@ extern void uart_send_integer(int n);
   
 void thread_entry(int cid, int nc)
 {
-    static data_t results_data[ARRAY_SIZE];
+    static data_t results_data[ARRAY_SIZE]={0};
+
 
 //     stats(matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data); barrier(nc), DIM_SIZE/DIM_SIZE/DIM_SIZE); // this needs to be enablled to calculate IPC
 
     matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data); 
-//     barrier(nc);
+    // barrier(nc);
 
-//     int res = verify(ARRAY_SIZE, results_data, verify_data);
+    // int res = verify(ARRAY_SIZE, results_data, verify_data);
 
     // Call the syscall to print the matrix to UART
     if (cid == 0) { // Optional: Only core 0 prints to avoid potential output issues in simple setup
+        // uart_send_integer(res);
         syscall_print_matrix(DIM_SIZE, results_data);
     }
 

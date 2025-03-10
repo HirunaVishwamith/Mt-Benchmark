@@ -65,9 +65,9 @@ void syscall_print_matrix(int lda, int *matrix) {
     // In this simple case, we might directly implement the printing here for bare-metal
 
     uart_send_string("Result Matrix:\n");
-    for (int i = 0; i < lda; ++i) {
-        for (int j = 0; j < lda; ++j) {
-            uart_send_integer(matrix[i + j * lda]); // Assuming row-major order 
+    for (int i = 0; i < lda; i++) {
+        for (int j = 0; j < lda; j++) {
+            uart_send_integer(matrix[j + i * lda]); // Assuming row-major order 
             uart_send_string(" ");
         }
         uart_send_string("\n");
@@ -90,68 +90,68 @@ int __attribute__((weak)) main(int argc, char** argv)
   return -1;
 }
 
-void* memcpy(void* dest, const void* src, size_t len)
-{
-  if ((((uintptr_t)dest | (uintptr_t)src | len) & (sizeof(uintptr_t)-1)) == 0) {
-    const uintptr_t* s = src;
-    uintptr_t *d = dest;
-    while (d < (uintptr_t*)(dest + len))
-      *d++ = *s++;
-  } else {
-    const char* s = src;
-    char *d = dest;
-    while (d < (char*)(dest + len))
-      *d++ = *s++;
-  }
-  return dest;
-}
+// void* memcpy(void* dest, const void* src, size_t len)
+// {
+//   if ((((uintptr_t)dest | (uintptr_t)src | len) & (sizeof(uintptr_t)-1)) == 0) {
+//     const uintptr_t* s = src;
+//     uintptr_t *d = dest;
+//     while (d < (uintptr_t*)(dest + len))
+//       *d++ = *s++;
+//   } else {
+//     const char* s = src;
+//     char *d = dest;
+//     while (d < (char*)(dest + len))
+//       *d++ = *s++;
+//   }
+//   return dest;
+// }
 
-void* memset(void* dest, int byte, size_t len)
-{
-  if ((((uintptr_t)dest | len) & (sizeof(uintptr_t)-1)) == 0) {
-    uintptr_t word = byte & 0xFF;
-    word |= word << 8;
-    word |= word << 16;
-    word |= word << 16 << 16;
+// void* memset(void* dest, int byte, size_t len)
+// {
+//   if ((((uintptr_t)dest | len) & (sizeof(uintptr_t)-1)) == 0) {
+//     uintptr_t word = byte & 0xFF;
+//     word |= word << 8;
+//     word |= word << 16;
+//     word |= word << 16 << 16;
 
-    uintptr_t *d = dest;
-    while (d < (uintptr_t*)(dest + len))
-      *d++ = word;
-  } else {
-    char *d = dest;
-    while (d < (char*)(dest + len))
-      *d++ = byte;
-  }
-  return dest;
-}
+//     uintptr_t *d = dest;
+//     while (d < (uintptr_t*)(dest + len))
+//       *d++ = word;
+//   } else {
+//     char *d = dest;
+//     while (d < (char*)(dest + len))
+//       *d++ = byte;
+//   }
+//   return dest;
+// }
 
-static void init_tls()
-{
-  register void* thread_pointer asm("tp");
-  extern char _tls_data;
-  extern __thread char _tdata_begin, _tdata_end, _tbss_end;
-  size_t tdata_size = &_tdata_end - &_tdata_begin;
-  memcpy(thread_pointer, &_tls_data, tdata_size);
-  size_t tbss_size = &_tbss_end - &_tdata_end;
-  memset(thread_pointer + tdata_size, 0, tbss_size);
-}
+// static void init_tls()
+// {
+//   register void* thread_pointer asm("tp");
+//   extern char _tls_data;
+//   extern __thread char _tdata_begin, _tdata_end, _tbss_end;
+//   size_t tdata_size = &_tdata_end - &_tdata_begin;
+//   memcpy(thread_pointer, &_tls_data, tdata_size);
+//   size_t tbss_size = &_tbss_end - &_tdata_end;
+//   memset(thread_pointer + tdata_size, 0, tbss_size);
+// }
 
 void exit(int code)
 {
   while (1);
 }
 
-void _init(int cid, int nc)
-{
-  init_tls();
-  thread_entry(cid, nc);
+// void _init(int cid, int nc)
+// {
+//   init_tls();
+//   thread_entry(cid, nc);
 
-  // only single-threaded programs should ever get here.
-  int ret = main(0, 0);
+//   // only single-threaded programs should ever get here.
+//   int ret = main(0, 0);
 
 
-  exit(ret);
-}
+//   exit(ret);
+// }
 
 
 #endif // __SYSCALL_H__

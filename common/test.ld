@@ -14,69 +14,53 @@
 OUTPUT_ARCH( "riscv" )
 
 /*----------------------------------------------------------------------*/
+/* Memory Definitions                                                   */
+/*----------------------------------------------------------------------*/
+MEMORY
+{
+    ram (rwx) : ORIGIN = 0x10000000, LENGTH = 64K  /* Define RAM starting at 0x10000000 with 64KB size */
+}
+
+/*----------------------------------------------------------------------*/
 /* Sections                                                             */
 /*----------------------------------------------------------------------*/
 
 SECTIONS
 {
 
-  /* text: test code section */
+  /* Start at the beginning of RAM */
   . = 0x10000000;
-  .text.init : { crt.o(.text) }
 
-  .tohost ALIGN(0x1000) : { *(.tohost) }
+  /* text: test code section */
+  .text.init : { crt.o(.text) } > ram
 
-  .text : { *(.text) }
+  /* Main text section for other code */
+  .text : { *(.text) } > ram
 
-  /* data segment */
-  .data : { *(.data) }
-
+  /* Small data section for global pointer */
   .sdata : {
-    _gp = . + 0x800;
-    *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata*)
-    *(.sdata .sdata.* .gnu.linkonce.s.*)
-  }
+      _gp = . + 0x800;
+      *(.sdata .sdata.*)
+  } > ram
 
-  /* bss segment */
-  .sbss : {
-    *(.sbss .sbss.* .gnu.linkonce.sb.*)
-    *(.scommon)
-  }
-  .bss : { *(.bss) }
+  /* Data section */
+  .data : ALIGN(8) {
+      _sdata_start = .;  /* Start of .data */
+      *(.data .data.*)   /* Include all initialized data */
+      _sdata_end = .;    /* End of .data */
+  } > ram
 
-  /* thread-local data segment */
-  /* .tdata :
-  {
-    _tls_data = .;
-    crt.o(.tdata.begin)
-    *(.tdata)
-    crt.o(.tdata.end)
-  }
-  .tbss :
-  {
-    *(.tbss)
-    crt.o(.tbss.end)
-  } */
+  /* BSS section for uninitialized data */
+  .bss : ALIGN(8) {
+      _sbss = .;         /* Start of .bss */
+      *(.bss .bss.*)     /* Include all uninitialized data */
+      *(COMMON)
+      _ebss = .;         /* End of .bss */
+  } > ram
 
-  .tdata :
-  {
-    _tdata_begin = .;
-    _tls_data = .;
-    crt.o(.tdata.begin)
-    *(.tdata)
-    _tdata_end = .;
-    crt.o(.tdata.end)
-  }
-  .tbss :
-  {
-    _tbss_begin = .;
-    *(.tbss)
-    _tbss_end = .;
-    crt.o(.tbss.end)
-  }
-
-
-  /* End of uninitalized data segement */
+  /* End of uninitialized data segment */
   _end = .;
+
+
 }
 
