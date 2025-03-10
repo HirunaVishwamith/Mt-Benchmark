@@ -55,7 +55,7 @@ void thread_entry(int cid, int nc)
     // for that mcycle and mretinstr csr registers has to be enable in the hardware
 
     matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data);
-    // barrier(nc);
+    barrier(nc);
 
     int res = verify(ARRAY_SIZE, results_data, verify_data);
 
