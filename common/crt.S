@@ -1,4 +1,21 @@
-# See LICENSE for license details.
+//**************************************************************************
+// Multi-threaded booting rootine
+//--------------------------------------------------------------------------
+// Hiruna Vishwamith
+// UOM
+// 10/03/2025
+//
+//
+//--------------------------------------------------------------------------
+// booting sequence
+//
+// 1. initiaalize the global pointer
+// 2. initialize the trap vector
+// 3. zeroout the bss - (initialize the result matrix)
+// 4. reserve stack and tls are for each core
+// 5. call thread entry function
+
+//--------------------------------------------------------------------------
 
 #include "encoding.h"
 

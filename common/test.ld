@@ -1,5 +1,8 @@
 /*======================================================================*/
 /* Proxy kernel linker script                                           */
+/*  Hiruna Vishwamith
+    UOM
+    10/03/2025                                                          */
 /*======================================================================*/
 /* This is the linker script used when building the proxy kernel. */
 
