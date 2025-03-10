@@ -53,12 +53,13 @@ void thread_entry(int cid, int nc)
      vvadd(cid, nc, DATA_SIZE, input_data_X, input_data_Y, results_data);
      barrier(nc);
 
-     int res = verify(DATA_SIZE, results_data, verify_data_Z);
+     
 
      // Call the syscall to print the matrix to UART
      if (cid == 0)
      { // Optional: Only core 0 prints to avoid potential output issues in simple setup
           uart_send_string("The code is ran with error code: ");
+          int res = verify(DATA_SIZE, results_data, verify_data_Z);
           uart_send_integer(res);
           uart_send_string("\n");
           #ifdef DEBUG

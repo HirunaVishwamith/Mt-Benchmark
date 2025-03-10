@@ -56,12 +56,13 @@ void thread_entry(int cid, int nc)
     matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data);
     barrier(nc);
 
-    int res = verify(ARRAY_SIZE, results_data, verify_data);
+    
 
     // Call the syscall to print the matrix to UART
     if (cid == 0)
     { // Optional: Only core 0 prints to avoid potential output issues in simple setup
         uart_send_string("The code is ran with error code: ");
+        int res = verify(ARRAY_SIZE, results_data, verify_data);
         uart_send_integer(res);
         uart_send_string("\n");
         #ifdef DEBUG
