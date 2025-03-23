@@ -20,7 +20,7 @@
 #include "encoding.h"
 
 
-#define NUM_CORES 1 // Define the number of cores here. Adjust as needed.
+#define NUM_CORES 2 // Define the number of cores here. Adjust as needed.
 #define DATA_BASE 0x10040000
 # define STACK_SIZE (1<<17)
 # define TLS_SIZE   (1<<17)
