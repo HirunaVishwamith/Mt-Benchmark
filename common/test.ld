@@ -1,69 +1,55 @@
 /*======================================================================*/
 /* Proxy kernel linker script                                           */
-/*  Hiruna Vishwamith
-    UOM
-    10/03/2025                                                          */
+/*  Hiruna Vishwamith                                                   */
+/*  UOM                                                                */
+/*  10/03/2025                                                         */
 /*======================================================================*/
-/* This is the linker script used when building the proxy kernel. */
 
-/*----------------------------------------------------------------------*/
-/* Setup                                                                */
-/*----------------------------------------------------------------------*/
+/* Specify the entry point explicitly */
+ENTRY(_start)
 
-/* The OUTPUT_ARCH command specifies the machine architecture where the
-   argument is one of the names used in the BFD library. More
-   specifically one of the entires in bfd/cpu-mips.c */
+/* Target architecture */
+OUTPUT_ARCH("riscv")
 
-OUTPUT_ARCH( "riscv" )
-
-/*----------------------------------------------------------------------*/
-/* Memory Definitions                                                   */
-/*----------------------------------------------------------------------*/
+/* Memory Definitions */
 MEMORY
 {
-    ram (rwx) : ORIGIN = 0x10000000, LENGTH = 64K  /* Define RAM starting at 0x10000000 with 64KB size */
+    ram (rwx) : ORIGIN = 0x0, LENGTH = 64K  /* RAM starts at 0x0, 64KB size */
 }
 
-/*----------------------------------------------------------------------*/
-/* Sections                                                             */
-/*----------------------------------------------------------------------*/
-
+/* Sections */
 SECTIONS
 {
+    /* Start at address 0x0 */
+    . = 0x0;
 
-  /* Start at the beginning of RAM */
-  . = 0x10000000;
+    /* Initial text section (boot code) with 4-byte alignment */
+    .text.init : ALIGN(4) { crt.o(.text) } > ram
 
-  /* text: test code section */
-  .text.init : { crt.o(.text) } > ram
+    /* Main text section with 4-byte alignment */
+    .text : ALIGN(4) { *(.text) } > ram
 
-  /* Main text section for other code */
-  .text : { *(.text) } > ram
+    /* Small data section for global pointer with 4-byte alignment */
+    .sdata : ALIGN(4) {
+        _gp = . + 0x800;
+        *(.sdata .sdata.*)
+    } > ram
 
-  /* Small data section for global pointer */
-  .sdata : {
-      _gp = . + 0x800;
-      *(.sdata .sdata.*)
-  } > ram
+    /* Data section with 8-byte alignment */
+    .data : ALIGN(8) {
+        _sdata_start = .;  /* Start of .data */
+        *(.data .data.*)   /* Initialized data */
+        _sdata_end = .;    /* End of .data */
+    } > ram
 
-  /* Data section */
-  .data : ALIGN(8) {
-      _sdata_start = .;  /* Start of .data */
-      *(.data .data.*)   /* Include all initialized data */
-      _sdata_end = .;    /* End of .data */
-  } > ram
+    /* BSS section with 8-byte alignment */
+    .bss : ALIGN(8) {
+        _sbss = .;         /* Start of .bss */
+        *(.bss .bss.*)     /* Uninitialized data */
+        *(COMMON)
+        _ebss = .;         /* End of .bss */
+    } > ram
 
-  /* BSS section for uninitialized data */
-  .bss : ALIGN(8) {
-      _sbss = .;         /* Start of .bss */
-      *(.bss .bss.*)     /* Include all uninitialized data */
-      *(COMMON)
-      _ebss = .;         /* End of .bss */
-  } > ram
-
-  /* End of uninitialized data segment */
-  _end = .;
-
-
+    /* End of allocated memory */
+    _end = .;
 }
-

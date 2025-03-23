@@ -27,8 +27,8 @@
 #define REGION_SHIFT 18 // (STACK_SIZE + TLS_SIZE) 
 #define UART_BASE 0xe0001030
 
-  .text
-  # .section ".text.init" ## code starts here in the elf file
+  # .text
+  .section ".text.init" ## code starts here in the elf file
   .globl _start
   .type   _start, @function
 

@@ -23,9 +23,9 @@ mt_matmul_host_bin = mt-matmul.host
 $(mt_matmul_host_bin) : $(mt_matmul_c_src)
 	$(HOST_COMP) $^ -o $(mt_matmul_host_bin)
 
-mt_matmul_riscv_bin = mt-matmul.riscv
-$(mt_matmul_riscv_bin) : $(mt_matmul_c_objs) $(mt_matmul_riscv_objs)
-	$(RISCV_LINK) $(mt_matmul_c_objs) $(mt_matmul_riscv_objs) $(RISCV_LINK_OPTS) -o $(mt_matmul_riscv_bin)
+mt_matmul_riscv_elf = mt-matmul.riscv
+$(mt_matmul_riscv_elf) : $(mt_matmul_c_objs) $(mt_matmul_riscv_objs)
+	$(RISCV_LINK) $(mt_matmul_c_objs) $(mt_matmul_riscv_objs) $(RISCV_LINK_OPTS) -o $(mt_matmul_riscv_elf)
 
 junk += $(mt_matmul_c_objs) $(mt_matmul_riscv_objs) \
-        $(mt_matmul_host_bin) $(mt_matmul_riscv_bin)
+        $(mt_matmul_host_bin) $(mt_matmul_riscv_elf)
