@@ -90,14 +90,14 @@ $(bmarks_riscv_bin): %.bin: %.riscv
 	             -c $(incs) $< -o $@
 
 ifdef HWACHA
-riscv: $(bmarks_riscv_dump) $(bmarks_riscv_hex)
+riscv: $(bmarks_riscv_dump) $(bmarks_riscv_bin)
 	make -C hwacha
 else
 riscv: $(bmarks_riscv_dump) $(bmarks_riscv_bin)
 endif
 
 
-junk += $(bmarks_riscv_elf) $(bmarks_riscv_dump) $(bmarks_riscv_hex) $(bmarks_riscv_out)
+junk += $(bmarks_riscv_elf) $(bmarks_riscv_dump) $(bmarks_riscv_bin) 
 
 
 #------------------------------------------------------------
