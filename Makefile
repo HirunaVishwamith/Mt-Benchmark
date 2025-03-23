@@ -46,8 +46,8 @@ HOST_COMP = gcc $(HOST_OPTS)
 RISCV_PREFIX ?= riscv$(XLEN)-unknown-elf-
 RISCV_GCC ?= $(RISCV_PREFIX)gcc
 # RISCV_GCC_OPTS ?= -mcmodel=medany -static -std=gnu99 -O2 -ffast-math -fno-common -fno-builtin-printf  -march=RV64IMAFDXhwacha
-RISCV_GCC_OPTS ?= -mcmodel=medany -static -std=gnu99 -O2 -fno-common -fno-builtin-printf  -march=rv64ima_zicsr -mabi=lp64 
-# RISCV_GCC_OPTS ?=  -static -O -ffreestanding -fno-pic -fno-common -fno-builtin-printf  -march=rv64ima_zicsr -mabi=lp64 
+# RISCV_GCC_OPTS ?= -mcmodel=medany -static -std=gnu99 -O2 -fno-common -fno-builtin-printf  -march=rv64ima_zicsr -mabi=lp64 
+RISCV_GCC_OPTS ?=  -static -O -ffreestanding -fno-pic -fno-common -fno-builtin-printf  -march=rv64ima_zicsr -mabi=lp64 
 RISCV_LINK ?= $(RISCV_GCC) -n -T $(src_dir)/common/test.ld $(incs)
 # RISCV_LINK_MT ?= $(RISCV_GCC) -T $(src_dir)/common/test-mt.ld
 RISCV_LINK_OPTS ?= -nostdlib -nostartfiles  -Wl,-v
