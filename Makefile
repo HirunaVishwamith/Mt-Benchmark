@@ -23,7 +23,7 @@ bmarks = \
 	mt-vvadd \
 	mt-mask-sfilter \
 	mt-histo \
-	# mt-csaxpy \
+	mt-csaxpy \
 
 
 # bmarks_host = \
