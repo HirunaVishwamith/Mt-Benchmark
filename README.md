@@ -28,14 +28,14 @@ The repository is organized as follows:
    
 2. **Compile the Benchmarks**:
 
-Simply run the make riscv command:
+Simply run the following command:
 
 ```
-  make riscv
+  make all
 ```
 
 This command will compile the benchmarks and generate the following files:
 ```
-mt-matmul.riscv: The final RISC-V binary executable.
+mt-matmul.bin: The final RISC-V binary executable.
 mt-matmul.riscv.dump: The assembly dump of the compiled binary.
 ```
