@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 #include <stdarg.h>
-#include <stdio.h>
+// #include <stdio.h>
 
 // UART base address
 #define UART_TX 0xe0001030
@@ -90,6 +90,33 @@ void syscall_print_array(int lda, int *array) {
     }
     
     uart_send_string("\n");
+}
+
+// Syscall function for baremettal printf function suporting %d and %s
+void printf(const char *format, ...){
+  va_list args;
+  va_start(args, format);
+  
+  while (*format){
+    if(*format == '%'){
+      format++;
+      if(*format == 'd'){
+        int num = va_arg(args,int);
+        uart_send_integer(num);
+      }else if (*format == 's') {
+        char *str = va_arg(args, char *);
+        uart_send_string(str);
+      }else{
+        uart_send_char(*format);
+      }
+    } else{
+      uart_send_char(*format);
+    }
+
+    format++;
+  }
+
+  va_end(args);
 }
 
 void __attribute__((weak)) thread_entry(int cid, int nc)

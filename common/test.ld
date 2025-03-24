@@ -14,7 +14,7 @@ OUTPUT_ARCH("riscv")
 /* Memory Definitions */
 MEMORY
 {
-    ram (rwx) : ORIGIN = 0x0, LENGTH = 64K  /* RAM starts at 0x0, 64KB size */
+    ram (rwx) : ORIGIN = 0x0, LENGTH = 512K  /* RAM starts at 0x0, 64KB size */
 }
 
 /* Sections */
