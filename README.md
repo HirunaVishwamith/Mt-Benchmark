@@ -1,12 +1,12 @@
 # Mt-Benchmark
 
-Mt-Benchmark is a RISC-V multithreaded benchmark suite designed to evaluate the performance of RISC-V processors under multithreaded workloads. It provides tools to compile and generate both binary (`.riscv`) and dump (`.dump`) files for analysis.
+Mt-Benchmark is a RISC-V multithreaded benchmark suite designed to evaluate the performance of RISC-V processors under multithreaded workloads. It provides tools to compile and generate both binary (`.bin`) and dump (`.dump`) files for analysis.
 
 ## Features
 
 - **Multithreaded Benchmarks**: Assess the performance of RISC-V processors with concurrent execution scenarios.
 - **Customizable Compilation**: Utilize the provided `Makefile` to compile benchmarks tailored to specific RISC-V architectures.
-- **Output Artifacts**: Generate `.riscv` binary files and `.dump` files containing detailed assembly and memory information.
+- **Output Artifacts**: Generate `.bin` binary files and `.dump` files containing detailed assembly and memory information.
 
 ## Repository Structure
 
