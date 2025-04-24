@@ -20,15 +20,21 @@
 // #include <stdio.h>
 
 // UART base address
-#define UART_TX 0xe0001030
-#define UART_RX 0xe000102c
+// #define UART_TX 0xe0001030
+// #define UART_RX 0xe000102c
+
+#define UART_TX  0x40600004
+#define UART_STS 0x40600008
+#define UART_STS_TX_FULL (1 << 3)
+
 
 // Helper function to send a character to UART
 static void uart_send_char(char c) {
   volatile uint32_t *uart_tx_reg = (volatile uint32_t *)(UART_TX);
-  volatile uint32_t *uart_rx_reg = (volatile uint32_t *)(UART_RX);
+  volatile uint32_t *uart_sts_reg = (volatile uint32_t *)(UART_STS);
 
-    while((*uart_rx_reg)&16)
+    // wait until uart_tx is empty then sends the data AXI Lite spec
+    while((*uart_sts_reg) & UART_STS_TX_FULL)
 		;
 
   *uart_tx_reg = (uint32_t)c; // Assuming writing to this address sends the char

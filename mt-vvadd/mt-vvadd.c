@@ -49,6 +49,8 @@ void thread_entry(int cid, int nc)
 {
      // static allocates data in the binary, which is visible to both threads
      static data_t results_data[DATA_SIZE] = {0};
+     initialize_count_asm(0);
+     // initialize_sense_asm(0);
 
      vvadd(cid, nc, DATA_SIZE, input_data_X, input_data_Y, results_data);
      barrier(nc);

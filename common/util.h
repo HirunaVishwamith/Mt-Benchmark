@@ -16,6 +16,11 @@
 
 #include <stdint.h>
 
+
+static volatile int sense = 0;
+static volatile int count = 0;
+
+
 static int verify(int n, const volatile int *test, const int *verify)
 {
   int i;
@@ -46,10 +51,41 @@ static inline int atomic_fetch_add(volatile int *ptr, int val)
   return old;
 }
 
+
+void initialize_count_asm(int initial_value) {
+    volatile int *count_ptr = &count; // Get the address of the shared count variable
+
+    asm volatile (
+        // Use the Store Word (sw) instruction for a 32-bit integer (int)
+        // sw rs2, offset(rs1)  => Store value from register rs2 to address rs1 + offset
+        // Here, offset is 0. rs1 holds the pointer (%[ptr]), rs2 holds the value (%[val]).
+        "sd %[val], 0(%[ptr])"
+        : // No output operands (we are only writing)
+        : [ptr] "r" (count_ptr),    // Input: Pointer to count in a register (constraint "r")
+          [val] "r" (initial_value) // Input: Initial value in a register (constraint "r")
+        : "memory" // Clobber: Informs the compiler that memory is modified
+    );
+}
+
+void initialize_sense_asm(int initial_value) {
+    volatile int *sense_ptr = &sense; // Get the address of the shared count variable
+
+    asm volatile (
+        // Use the Store Word (sw) instruction for a 32-bit integer (int)
+        // sw rs2, offset(rs1)  => Store value from register rs2 to address rs1 + offset
+        // Here, offset is 0. rs1 holds the pointer (%[ptr]), rs2 holds the value (%[val]).
+        "sd %[val], 0(%[ptr])"
+        : // No output operands (we are only writing)
+        : [ptr] "r" (sense_ptr),    // Input: Pointer to count in a register (constraint "r")
+          [val] "r" (initial_value) // Input: Initial value in a register (constraint "r")
+        : "memory" // Clobber: Informs the compiler that memory is modified
+    );
+}
+
 static void __attribute__((noinline)) barrier(int ncores)
 {
-  static volatile int sense;
-  static volatile int count;
+  // static volatile int sense;
+  // static volatile int count;
   static __thread int threadsense; // non shared variable in TLS
 
   __sync_synchronize(); // fence

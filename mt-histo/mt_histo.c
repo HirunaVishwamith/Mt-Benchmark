@@ -75,6 +75,7 @@ void thread_entry(int cid, int nc)
     if (cid == 0)
     {
         // Check the results
+        uart_send_string("The code is ran with error code: ");
         ret = verify(NUM_BINS, output_bins, verify_data);
         uart_send_integer(ret);
         uart_send_string("\n");

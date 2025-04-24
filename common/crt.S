@@ -20,12 +20,15 @@
 #include "encoding.h"
 
 
-#define NUM_CORES 2 // Define the number of cores here. Adjust as needed.
-#define DATA_BASE 0x10040000
+#define NUM_CORES 1 // Define the number of cores here. Adjust as needed.
+// #define DATA_BASE 0x10040000
+#define DATA_BASE 0x80040000
 # define STACK_SIZE (1<<17)
 # define TLS_SIZE   (1<<17)
 #define REGION_SHIFT 18 // (STACK_SIZE + TLS_SIZE) 
-#define UART_BASE 0xe0001030
+#define UART_BASE 0x40600004
+// #define UART_BASE 0xe0001030
+
 
   # .text
   .section ".text.init" ## code starts here in the elf file
@@ -94,6 +97,10 @@ _start:
 
   # get core id
   csrr a0, mhartid
+  la x12, hart_init_sync
+  li x6,1
+  sb x6,0(x12)
+  fence
 
     # Only core 0 should perform data initialization
     bnez a0,sync_all_harts #If hard id !=0, skip initialization

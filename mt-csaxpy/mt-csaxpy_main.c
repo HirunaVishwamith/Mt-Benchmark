@@ -38,6 +38,7 @@ int thread_entry(int cid, int nc)
   {
 
     // Check the results
+    uart_send_string("The code is ran with error code: ");
     int res = verify(DATA_SIZE, input_data_Y, verify_data);
     uart_send_integer(res);
     uart_send_string("\n");
