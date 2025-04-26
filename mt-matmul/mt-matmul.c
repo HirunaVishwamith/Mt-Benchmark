@@ -49,12 +49,14 @@ extern void exit(int status);
 void thread_entry(int cid, int nc)
 {
     static data_t results_data[ARRAY_SIZE] = {0};
+    initialize_count_asm(0);
+
 
     //     stats(matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data); barrier(nc), DIM_SIZE/DIM_SIZE/DIM_SIZE); // this needs to be enablled to calculate IPC
     // for that mcycle and mretinstr csr registers has to be enable in the hardware
 
     matmul(cid, nc, DIM_SIZE, input1_data, input2_data, results_data);
-    // barrier(nc);
+    barrier(nc);
 
     
 

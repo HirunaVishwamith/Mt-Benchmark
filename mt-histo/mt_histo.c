@@ -57,7 +57,7 @@ void printBins(int *out_bins, int nbins)
     int i;
 
     for (i = 0; i < nbins; i++)
-        printf("out_bins[%d] = %d\n", i, out_bins[i]);
+        printf("out_bins[%d] = %d\r\n", i, out_bins[i]);
 }
 
 #define min(a, b) ((a) < (b)) ? (a) : (b)
@@ -68,6 +68,8 @@ void thread_entry(int cid, int nc)
     int start = cid * local_data_size;
     int end = min(start + local_data_size, DATA_SIZE);
     int ret = 0;
+    initialize_count_asm(0);
+
 
     histo_kernel(input_data + start, end - start, temp_bins + cid * NUM_BINS, output_bins, NUM_BINS);
     barrier(nc);

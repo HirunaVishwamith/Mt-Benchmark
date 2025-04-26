@@ -30,6 +30,8 @@ extern void exit(int status);
 int thread_entry(int cid, int nc)
 {
 
+  initialize_count_asm(0);
+
   // Do SAXPY
   mt_csaxpy(cid, nc, DATA_SIZE, input_data_a, input_data_X, input_data_Y, cond_data);
   barrier(nc);

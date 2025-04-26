@@ -72,15 +72,15 @@ void syscall_print_matrix(int lda, int *matrix) {
     // Prepare syscall arguments (if needed for a more complex syscall mechanism)
     // In this simple case, we might directly implement the printing here for bare-metal
 
-    uart_send_string("Result Matrix:\n");
+    uart_send_string("Result Matrix:\r\n");
     for (int i = 0; i < lda; i++) {
         for (int j = 0; j < lda; j++) {
             uart_send_integer(matrix[j + i * lda]); // Assuming row-major order 
             uart_send_string(" ");
         }
-        uart_send_string("\n");
+        uart_send_string("\r\n");
     }
-    uart_send_string("\n");
+    uart_send_string("\r\n");
 
 }
 
@@ -89,13 +89,13 @@ void syscall_print_array(int lda, int *array) {
     // Prepare syscall arguments (if needed for a more complex syscall mechanism)
     // In this simple case, we might directly implement the printing here for bare-metal
 
-    uart_send_string("Result Array:\n");
+    uart_send_string("Result Array:\r\n");
     for (int i = 0; i < lda; i++) {
       uart_send_integer(array[i]);
       uart_send_string(" ");
     }
     
-    uart_send_string("\n");
+    uart_send_string("\r\n");
 }
 
 // Syscall function for baremettal printf function suporting %d and %s

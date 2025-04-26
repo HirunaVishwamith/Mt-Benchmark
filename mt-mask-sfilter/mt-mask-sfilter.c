@@ -48,7 +48,9 @@ extern void exit(int status);
 void thread_entry(int cid, int nc)
 {
   // static allocates data in the binary, which is visible to both threads
-  static data_t results_data[DATA_SIZE * DATA_SIZE];
+  static data_t results_data[DATA_SIZE * DATA_SIZE]={0};
+  initialize_count_asm(0);
+
   int m0 = 1;
   int m1 = 1;
   int m2 = 1;

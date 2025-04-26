@@ -21,9 +21,9 @@ instbasedir = ./install
 bmarks = \
 	mt-matmul \
 	mt-vvadd \
-	# mt-mask-sfilter \
-	# mt-histo \
-	# mt-csaxpy \
+	mt-mask-sfilter \
+	mt-histo \
+	mt-csaxpy \
 
 
 # bmarks_host = \
